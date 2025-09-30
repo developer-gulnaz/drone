@@ -20,8 +20,8 @@ app.use(session({
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24, // 1 day
     sameSite: "lax",
-    secure: false
-    // secure: process.env.NODE_ENV === "production" // true in production
+    // secure: false
+    secure: process.env.NODE_ENV === "production" // true in production
   }
 }));
 
@@ -57,6 +57,6 @@ app.get("/api/debug-session", (req, res) => {
 });
 
 // Use Railway port or fallback to 5000
-const PORT = 5000;
-// const PORT = process.env.PORT || 5000;
+// const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
