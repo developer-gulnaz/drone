@@ -1,11 +1,21 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
-  
   const queryParams = new URLSearchParams(window.location.search);
   const orderId = queryParams.get("orderId");
 
   if (!orderId) {
     alert("Order ID not found");
+    return;
+  }
+
+  // ---------------- Load user ----------------
+  let profile = {};
+  try {
+    const res = await fetch("/api/users/profile", { credentials: "include" });
+    if (!res.ok) throw new Error("Login required");
+    profile = await res.json();
+  } catch (err) {
+    window.location.href = "login.html";
     return;
   }
 
@@ -17,10 +27,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // ================== ORDER SUMMARY   ===================
     document.querySelector("[data-order-id]").textContent = `Order #${order.orderNumber || order._id}`;
     document.querySelector("[data-order-date]").textContent = order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "N/A";
-    document.querySelector("[data-subtotal]").textContent = `$${(order.subtotal || order.total || 0).toFixed(2)}`;
-    document.querySelector("[data-shipping]").textContent = `$${order.shippingCost?.toFixed(2) || 0}`;
-    document.querySelector("[data-tax]").textContent = `$${order.tax?.toFixed(2) || 0}`;
-    document.querySelector("[data-total]").textContent = `$${(order.total || 0).toFixed(2)}`;
+    document.querySelector("[data-subtotal]").textContent = `₹${(order.subtotal || order.total || 0).toFixed(2)}`;
+    document.querySelector("[data-shipping]").textContent = `₹${order.shippingCost?.toFixed(2) || 0}`;
+    document.querySelector("[data-tax]").textContent = `₹${order.tax?.toFixed(2) || 0}`;
+    document.querySelector("[data-total]").textContent = `₹${(order.total || 0).toFixed(2)}`;
     document.querySelector("[data-estimate]").textContent = `Estimated delivery: ${order.estimatedDelivery || "N/A"}`;
     document.querySelector("[data-shipping-method]").textContent = order.shippingMethod || "N/A";
 
@@ -40,7 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const paymentNumberEl = document.querySelector("[data-card-number]");
     const txnIdEl = document.querySelector("[data-txn-id]");
     const paymentIconEl = document.querySelector(".payment-icon i");
-    
+
     if (order.paymentMethod === "COD") {
       // No Payment entry in DB
       paymentTypeEl.textContent = "Cash on Delivery";
@@ -58,7 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           paymentNumberEl.innerHTML = `
             <strong>Payment Status:</strong> ${payment.status}<br>
             <strong>Payment Mode:</strong> ${payment.mode || "N/A"}<br>
-            <strong>Amount:</strong> $${payment.amount.toFixed(2)}<br>
+            <strong>Amount:</strong> ₹${payment.amount.toFixed(2)}<br>
             <strong>Bank Ref:</strong> ${payment.bank_ref_num || "N/A"}
           `;
           paymentIconEl.className = payment.mode === "UPI" ? "bi bi-upi" : "bi bi-credit-card-2-front";
@@ -93,7 +103,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             <div class="item-meta">${item.color ? `Color: ${item.color}` : ""} ${item.size ? ` | Size: ${item.size}` : ""}</div>
             <div class="item-price">
               <span class="quantity">${item.quantity} ×</span>
-              <span class="price">$${item.price.toFixed(2)}</span>
+              <span class="price">₹${item.price.toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -112,7 +122,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <img src="${prod.image}" alt="${prod.title}" loading="lazy">
               </div>
               <h5>${prod.title}</h5>
-              <div class="product-price">$${prod.price.toFixed(2)}</div>
+              <div class="product-price">₹${prod.price.toFixed(2)}</div>
               <a href="/product/${prod._id}" class="btn btn-add-cart">
                 <i class="bi bi-plus"></i>
                 Add to Cart

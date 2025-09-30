@@ -5,20 +5,20 @@ document.addEventListener("DOMContentLoaded", () => {
         let user = null;
 
         try {
-            // Fetch logged-in user from server (session-based)
             const res = await fetch("/api/users/profile", {
                 method: "GET",
-                credentials: "include", // important: send session cookie
+                credentials: "include",
             });
-
-            if (res.ok) {
-                user = await res.json();
-            }
+            if (res.ok) user = await res.json();
         } catch (err) {
             console.error("Error fetching profile:", err);
         }
 
-        headerActions.innerHTML = `
+        // Clear previous content first
+        headerActions.innerHTML = '';
+
+        // Add account dropdown
+        const accountHTML = `
         <div class="dropdown account-dropdown">
             <button class="header-action-btn" data-bs-toggle="dropdown">
                 <i class="bi bi-person"></i>
@@ -52,21 +52,28 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         </div>`;
 
-        renderCartWishlist();
+        headerActions.innerHTML = accountHTML;
+
+        // Now render cart/wishlist badges
+        await renderCartWishlist();
     }
+
 
     async function renderCartWishlist() {
         let cartCount = 0;
         let wishlistCount = 0;
 
         try {
-            const cartRes = await fetch("/api/cart", { credentials: "include" });
+            const [cartRes, wishlistRes] = await Promise.all([
+                fetch("/api/cart", { credentials: "include" }),
+                fetch("/api/wishlist", { credentials: "include" })
+            ]);
+
             if (cartRes.ok) {
                 const cart = await cartRes.json();
                 cartCount = cart.items.length || 0;
             }
 
-            const wishlistRes = await fetch("/api/wishlist", { credentials: "include" });
             if (wishlistRes.ok) {
                 const wishlist = await wishlistRes.json();
                 wishlistCount = wishlist.items.length || 0;
@@ -75,16 +82,42 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Error fetching cart/wishlist:", err);
         }
 
-        headerActions.innerHTML += `
+        // Always replace the badges, don't append
+        const existingCartBadge = document.getElementById("cartBadge");
+        const existingWishlistBadge = document.getElementById("wishlistBadge");
+        const repairButton = document.getElementById("btn-repair");
+
+        if (existingWishlistBadge) {
+            existingWishlistBadge.textContent = wishlistCount;
+        } else {
+            headerActions.innerHTML += `
         <a href="wishlist.html" class="header-action-btn me-2">
             <i class="bi bi-heart"></i>
             <span class="badge" id="wishlistBadge">${wishlistCount}</span>
-        </a>
+        </a>`;
+        }
+
+        if (existingCartBadge) {
+            existingCartBadge.textContent = cartCount;
+        } else {
+            headerActions.innerHTML += `
         <a href="cart.html" class="header-action-btn">
             <i class="bi bi-cart3"></i>
             <span class="badge" id="cartBadge">${cartCount}</span>
         </a>`;
+        }
+        // Add Repair button after the cart
+        if (repairButton) {
+            repairButton.textContent = " ";
+        } else {
+            headerActions.innerHTML += `
+            <span class="btn-repair"><a href="repair.html">Repair</a></span>
+            `;
+        }
+
+
     }
+
 
     // Logout handler
     headerActions.addEventListener("click", async (e) => {
@@ -112,6 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const wishlistBadge = document.getElementById("wishlistBadge");
         if (wishlistBadge) wishlistBadge.textContent = count;
     };
+
 
     renderHeader();
 });

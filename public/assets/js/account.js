@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <a href="order-details.html?orderId=${order._id}" class="order-link" style="text-decoration: none; color: inherit;">
                     <div class="order-header">
                         <div class="order-id"><span class="label">Order ID:</span> ${order._id}</div>
-                        <div class="order-date">${new Date(order.createdAt).toLocaleDateString()}</div>
+                        <div class="order-date">${new Date(order.createdAt).toLocaleString()}</div>
                     </div>
                     <div class="order-content">
                         <div class="product-grid">
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                             <div class="info-row"><span>Payment Type</span> <span class="status ${order.paymentMethod?.toLowerCase()}">${order.paymentMethod || '--'}</span></div>
                             <div class="info-row"><span>Order Status</span> <span class="status ${order.status?.toLowerCase()}">${order.status || '--'}</span></div>
                             <div class="info-row"><span>Items</span> ${order.items?.length || 0}</div>
-                            <div class="info-row"><span>Total</span> <span class="price">$${(order.total || 0).toFixed(2)}</span></div>
+                            <div class="info-row"><span>Total</span> <span class="price">₹${(order.total || 0).toFixed(2)}</span></div>
                         </div>
                     </div>
                   </a>
@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         </div>
                         <div class="wishlist-content">
                             <h4>${item.title}</h4>
-                            <div class="price">$${item.price}</div>
+                            <div class="price">₹${item.price}</div>
                             <button class="btn btn-sm btn-primary btn-add-cart">Add to Cart</button>
                         </div>
                     </div>
