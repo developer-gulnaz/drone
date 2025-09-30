@@ -26,7 +26,7 @@ app.use(session({
     httpOnly: true,
     maxAge: 1000 * 60 * 60 * 24, // 1 day
     sameSite: "lax",
-    secure: false // true if https
+    secure: true // true if https
   }
 }));
 
