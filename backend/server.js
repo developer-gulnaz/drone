@@ -1,7 +1,6 @@
 const express = require('express');
 const path = require('path');
 require('dotenv').config();
-const cors = require('cors');
 const session = require('express-session');
 const connectDB = require('./config/db');
 
@@ -10,12 +9,6 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.json());
-
-// ✅ CORS must come before session
-app.use(cors({
-  origin: "http://localhost:5000", // adjust if frontend served differently
-  credentials: true
-}));
 
 app.use(session({
   name: "sessionId",
