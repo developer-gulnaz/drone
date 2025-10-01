@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const ordersGrid = document.getElementById("ordersGrid");
       ordersGrid.innerHTML = "";
       document.getElementById("orderCount").textContent = orders.length;
-
+      updateUserBadge(orders.length);
       if (orders.length === 0) {
         document.getElementById("ordersEmpty")?.classList.remove("d-none");
       } else {
@@ -82,37 +82,59 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!wishlistRes.ok) throw new Error("Failed to fetch wishlist");
 
       const wishlist = await wishlistRes.json();
+      console.log("Wishlist data:", wishlist);
       const wishlistContainer = document.getElementById("wishlistContainer");
       const wishlistEmpty = document.getElementById("wishlistEmpty");
       wishlistContainer.innerHTML = "";
-      document.getElementById("wishlistCountSidebar").textContent = wishlist.length;
+      document.getElementById("wishlistCountSidebar").textContent = wishlist.items.length;
 
-      if (wishlist.length === 0) {
+      if (wishlist.items.length === 0) {
         wishlistEmpty.classList.remove("d-none");
       } else {
         wishlistEmpty.classList.add("d-none");
       }
 
-      wishlist.forEach((item) => {
+      wishlist.items.forEach((item) => {
         const card = document.createElement("div");
-        card.classList.add("col-md-4");
+        card.classList.add("wishlist-item"); // add "wishlist-item" for consistency
         card.innerHTML = `
-                    <div class="wishlist-card">
-                        <div class="wishlist-image">
-                            <img src="${item.image}" alt="${item.title}">
-                            <button class="btn-remove"><i class="bi bi-trash"></i></button>
-                        </div>
-                        <div class="wishlist-content">
-                            <h4>${item.title}</h4>
-                            <div class="price">₹${item.price}</div>
-                            <button class="btn btn-sm btn-primary btn-add-cart">Add to Cart</button>
-                        </div>
-                    </div>
-                `;
-        wishlistContainer.appendChild(card);
+        <div class="wishlist-card">
+            <div class="wishlist-image">
+                <img src="${item.image}" alt="${item.title}">
+                <button class="btn-remove" data-id="${item.product}"><i class="bi bi-trash"></i></button>
+            </div>
+            <div class="wishlist-content">
+                <h4>${item.title}</h4>
+                <div class="price">₹${item.price}</div>
+                <button class="btn btn-sm btn-primary btn-add-cart">Add to Cart</button>
+            </div>
+        </div> `;
 
-        card.querySelector(".btn-add-cart").addEventListener("click", () => addToCart(item._id));
-        card.querySelector(".btn-remove").addEventListener("click", () => removeFromWishlist(item._id, card));
+        wishlistContainer.appendChild(card);
+        // Use global remove function
+        card.querySelector(".btn-remove").addEventListener("click", (e) => {
+          const id = e.currentTarget.dataset.id;
+          window.removeFromWishlist(id, e.currentTarget); // pass clicked button for DOM removal
+        });
+
+        // Use global addToCart + then remove from wishlist
+        card.querySelector(".btn-add-cart").addEventListener("click", async () => {
+          const product = {
+            _id: item.product,   // ✅ real productId, not wishlistId
+            title: item.title,
+            price: item.price,
+            image: item.image
+          };
+
+          try {
+            await window.addToCart(product, 1);
+
+            // after adding to cart, also remove from wishlist globally
+            window.removeFromWishlist(item.product, card.querySelector(".btn-add-cart"));
+          } catch (err) {
+            console.error("Add to cart from wishlist error:", err);
+          }
+        });
       });
     } catch (error) {
       console.error("Error loading wishlist:", error);
@@ -308,29 +330,50 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("Failed to add to cart. Please try again.");
     }
   }
-
-  async function removeFromWishlist(productId, card) {
-    try {
-      const res = await fetch(`/api/wishlist/${productId}`, {
-        method: "DELETE",
-        credentials: "include"
-      });
-
-      if (res.ok) {
-        card.remove();
-        // Update wishlist count and check empty state
-        const remainingCards = document.querySelectorAll('#wishlistContainer .wishlist-card').length;
-        document.getElementById("wishlistCountSidebar").textContent = remainingCards;
-
-        if (remainingCards === 0) {
-          document.getElementById("wishlistEmpty").classList.remove("d-none");
-        }
-      } else {
-        throw new Error("Failed to remove from wishlist");
-      }
-    } catch (error) {
-      console.error("Error removing from wishlist:", error);
-      alert("Failed to remove from wishlist. Please try again.");
-    }
-  }
 });
+
+
+function updateUserBadge(orderCount) {
+  const badge = document.querySelector(".status-badge");
+  const userStatus = document.getElementById("accountUserStatus");
+  const statusIcon = document.querySelector(".user-status i"); // <i> inside user-status
+
+  if (!badge || !userStatus || !statusIcon) return;
+
+  let icon = "";
+  let title = "";
+  let color = "";
+
+  if (orderCount >= 10) {
+    icon = "bi bi-award";     // 🏆
+    title = "Elite Member";
+    color = "#d4af37";        // Premium gold
+  } else if (orderCount >= 5) {
+    icon = "bi bi-star-fill"; // ⭐
+    title = "Gold Member";
+    color = "#ffcc00";        // Bright yellow
+  } else if (orderCount >= 2) {
+    icon = "bi bi-shield-check"; // 🛡️
+    title = "Verified Member";
+    color = "#4cafef";           // Blue
+  } else {
+    badge.style.display = "none";
+    statusIcon.className = "bi bi-person"; // fallback icon
+    userStatus.textContent = "Member";
+    userStatus.style.color = "";
+    return;
+  }
+
+  // Update avatar badge
+  badge.innerHTML = `<i class="${icon}"></i>`;
+  badge.style.display = "inline-flex";
+  badge.style.color = color;
+  badge.setAttribute("title", title);
+
+  // Update status section (icon + text)
+  statusIcon.className = icon;
+  statusIcon.style.color = color;
+  userStatus.textContent = title;
+  userStatus.style.color = color;
+}
+

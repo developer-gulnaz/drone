@@ -433,7 +433,7 @@ async function renderBestSellers() {
         const bestSellers = products.filter(p => p.badge === "Best Sellers");
 
         // Select the row container inside the Best Sellers section
-        const container = document.querySelector("#best-sellers .row.g-5");
+        const container = document.querySelector("#best-sellers .row.g-5 px-5");
         if (!container) return console.error("Best Sellers container not found");
 
         container.innerHTML = ""; // Clear existing static products
@@ -501,12 +501,12 @@ const cardsContainer = document.getElementById("cardsContainer");
 
 // Badge configuration for icon and card background color
 const badgeConfig = {
-    "Trending": { icon: "bi bi-fire", color: "#FFF5F5" },
-    "Best Sellers": { icon: "bi bi-award", color: "#f0feffff" },
-    "Featured": { icon: "bi bi-star", color: "#F0F8FF" },
-    "New": { icon: "bi bi-star", color: "#F5FFF5" },
+    "Trending": { icon: "bi bi-fire", color: "#ff1919ff" },
+    "Best Sellers": { icon: "bi bi-award", color: "#094098ff" },
+    "Featured": { icon: "bi bi-star-fill", color: "#ffea00ff" },
+    "New": { icon: "bi bi-star", color: "#00a600ff" },
     "Hot": { icon: "bi bi-lightning-charge", color: "#FFF0F5" },
-    "Limited": { icon: "bi bi-hourglass-split", color: "#F5F0FF" },
+    "Limited": { icon: "bi bi-hourglass-split", color: "#f58607ff" },
 };
 
 async function loadCardProducts() {
@@ -520,13 +520,13 @@ async function loadCardProducts() {
             if (filtered.length === 0) return;
 
             const col = document.createElement("div");
-            col.className = "col-lg-4 col-md-6 mb-5 mb-md-0";
+            col.className = "col-lg-4 col-md-6 mb-5 mb-md-0 bestseller-card";
             col.dataset.aosDelay = `${200 + index * 100}`;
 
             col.innerHTML = `
-                <div class="product-category" style="background-color: ${badgeConfig[badge].color}; border-radius: 12px; padding: 15px;">
+                <div class="product-category" style="  background: linear-gradient(135deg, var(--surface-color) 20%, color-mix(in srgb, var(--accent-color), transparent 95%) 100%);">
                     <h3 class="category-title">
-                        <i class="${badgeConfig[badge].icon}"></i> ${badge}
+                        <i class="${badgeConfig[badge].icon}" style="color: ${badgeConfig[badge].color};"></i> ${badge}
                     </h3>
                     <div class="product-list">
                         ${filtered.map(product => `

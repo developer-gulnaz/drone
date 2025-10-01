@@ -107,17 +107,22 @@ document.addEventListener("DOMContentLoaded", () => {
         </a>`;
         }
         // Add Repair button after the cart
-        if (repairButton) {
-            repairButton.textContent = " ";
-        } else {
+        if (!repairButton) {
             headerActions.innerHTML += `
-            <span class="btn-repair"><a href="repair.html">Repair</a></span>
-            `;
+        <span class="btn-repair"><a href="repair.html">Repair</a></span>
+        <i class="mobile-nav-toggle d-xl-none bi bi-list me-0"></i>`;
+
+            const mobileNavToggleBtn = document.querySelector('.mobile-nav-toggle');
+            if (mobileNavToggleBtn) {
+                mobileNavToggleBtn.addEventListener('click', () => {
+                    document.body.classList.toggle('mobile-nav-active');
+                    mobileNavToggleBtn.classList.toggle('bi-list');
+                    mobileNavToggleBtn.classList.toggle('bi-x');
+                });
+            }
         }
 
-
     }
-
 
     // Logout handler
     headerActions.addEventListener("click", async (e) => {
@@ -144,8 +149,45 @@ document.addEventListener("DOMContentLoaded", () => {
     window.updateWishlistBadge = (count) => {
         const wishlistBadge = document.getElementById("wishlistBadge");
         if (wishlistBadge) wishlistBadge.textContent = count;
+        // Sidebar badge
+        const wishlistSidebarBadge = document.getElementById("wishlistCountSidebar");
+        if (wishlistSidebarBadge) wishlistSidebarBadge.textContent = count;
     };
 
 
     renderHeader();
 });
+
+
+// 🌍 Global: remove item from wishlist
+window.removeFromWishlist = async function (productId, triggerEl = null) {
+    if (!productId) return;
+
+    try {
+        const delRes = await fetch(`/api/wishlist/${productId}`, {
+            method: "DELETE",
+            credentials: "include",
+        });
+
+        if (delRes.ok) {
+            // Remove from DOM if trigger element is given
+            if (triggerEl) {
+                triggerEl.closest(".wishlist-item")?.remove();
+            }
+
+            // Update wishlist badge
+            const res = await fetch("/api/wishlist", { credentials: "include" });
+            if (res.ok) {
+                const wishlist = await res.json();
+                window.updateWishlistBadge(wishlist.items.length || 0);
+            }
+        } else {
+            const errData = await delRes.json();
+            alert(errData.message || "Failed to remove item from wishlist");
+        }
+    } catch (err) {
+        console.error("Wishlist remove error:", err);
+        alert("Something went wrong. Please try again.");
+    }
+};
+

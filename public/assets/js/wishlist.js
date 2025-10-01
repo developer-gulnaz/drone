@@ -83,31 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (removeBtn) {
         e.stopPropagation();
         const productId = removeBtn.dataset.id;
-        if (!productId) return;
-
-        try {
-          const delRes = await fetch(`/api/wishlist/${productId}`, {
-            method: "DELETE",
-            credentials: "include",
-          });
-
-          if (delRes.ok) {
-            // Remove item from DOM
-            removeBtn.closest(".wishlist-item")?.remove();
-
-            // Fetch updated wishlist to update badge
-            const res = await fetch("/api/wishlist", { credentials: "include" });
-            if (res.ok) {
-              const wishlist = await res.json();
-              window.updateWishlistBadge(wishlist.items.length || 0);
-            }
-          } else {
-            const errData = await delRes.json();
-            alert(errData.message || "Failed to remove item");
-          }
-        } catch (err) {
-          console.error("Wishlist remove error:", err);
-        }
+        window.removeFromWishlist(productId, removeBtn);
         return;
       }
 
@@ -122,26 +98,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           // Add to cart
           await window.addToCart({ _id: productId }, 1);
 
-          // Remove from wishlist
-          const delRes = await fetch(`/api/wishlist/${productId}`, {
-            method: "DELETE",
-            credentials: "include",
-          });
-
-          if (delRes.ok) {
-            // Remove from DOM
-            addCartBtn.closest(".wishlist-item")?.remove();
-
-            // Fetch updated wishlist to update badge
-            const res = await fetch("/api/wishlist", { credentials: "include" });
-            if (res.ok) {
-              const wishlist = await res.json();
-              window.updateWishlistBadge(wishlist.items.length || 0);
-            }
-          } else {
-            const errData = await delRes.json();
-            alert(errData.message || "Failed to remove item from wishlist");
-          }
+          // Then remove from wishlist using the same global fn
+          window.removeFromWishlist(productId, addCartBtn);
         } catch (err) {
           console.error("Add to cart from wishlist error:", err);
         }
